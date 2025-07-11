@@ -3,7 +3,8 @@
 //DEPS org.tomlj:tomlj:1.1.1
 
 import java.io.*;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import java.util.regex.Matcher;
@@ -97,7 +98,7 @@ public class JythonCli {
         }
 
         for (String arg : args) {
-            if (scriptFilename==null && arg.endsWith(".py")) {
+            if (scriptFilename == null && arg.endsWith(".py")) {
                 scriptFilename = arg;
                 jythonArgs.add(arg);
             } else if ("--cli-debug".equals(arg)) {
@@ -108,7 +109,7 @@ public class JythonCli {
         }
     }
 
-    /**
+     /**
      * Read the jbang block from the Jython script specified on the command-line
      * containing (optional) and interpret it as TOML data. The runtime options
      * that are extracted from the TOML data will override default version
@@ -116,11 +117,13 @@ public class JythonCli {
      *
      * @throws IOException
      */
-    void readJBangBlock() throws IOException {
+    void readJBangBlock(Reader script) throws IOException {
+
+        // Extract TOML data as a String
         boolean errorReportingEnabled = true;
-        String fileText = Files.readAllLines(Paths.get(scriptFilename))
-                .stream()
-                .collect(Collectors.joining("\n"));
+        String fileText = new BufferedReader(script)
+            .lines()
+            .collect(Collectors.joining("\n"));
         String tomlRegex = "^# /// (?<type>[a-zA-Z0-9-]+)$\\s(?<content>(^#(| .*)$\\s)+)^# ///$";
         Pattern pattern = Pattern.compile(tomlRegex, Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(fileText);
@@ -299,7 +302,7 @@ public class JythonCli {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) {
         // Create an instance of the class in which to compose argument list
         JythonCli jythonCli = new JythonCli();
 
@@ -308,7 +311,10 @@ public class JythonCli {
 
             // Normally we have a script file (but it's optional)
             if (jythonCli.scriptFilename != null) {
-                jythonCli.readJBangBlock();
+                Reader script = new BufferedReader(
+                    new InputStreamReader(
+                        new FileInputStream(jythonCli.scriptFilename)));
+                jythonCli.readJBangBlock(script);
                 jythonCli.interpretJBangBlock();
             }
 
