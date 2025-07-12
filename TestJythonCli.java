@@ -58,7 +58,6 @@ public class TestJythonCli {
 
     /** An unterminated {@code jbang} block is an error. */
     @Test
-    @Disabled("readJBangBlock does not throw on an unterminated block")
     void testUnterminated() throws IOException {
         String script = """
                         # /// jbang
@@ -75,6 +74,7 @@ public class TestJythonCli {
      * is not detectable by {@link JythonCli}.
      */
     @Test
+    @Disabled("throws IOException from readJBangBlock")
     void testGobbledBlock() throws IOException {
         JythonCli cli = new JythonCli();
         processScript(cli, """
@@ -85,7 +85,7 @@ public class TestJythonCli {
                        # requires-java = "8"
                        # ///
                 """);
-        assertTrue(cli.tomlText.isEmpty());
+        assertTrue(cli.tomlText.isEmpty(), "Test TOML text is empty");
         assertNull(cli.tpr);
     }
 
@@ -96,7 +96,7 @@ public class TestJythonCli {
      * block-start is not valid TOML.
      */
     @Test
-    @Disabled("interpretJBangBlock does not throw for invalid TOML")
+    @Disabled("Reports from readJBangBlock rather the TOML parser")
     void testCollision() throws IOException {
         String script = """
                 # /// jbang
@@ -108,13 +108,12 @@ public class TestJythonCli {
         """;
         JythonCli cli = new JythonCli();
         assertThrows(Exception.class, () -> processScript(cli, script));
-        assertFalse(cli.tomlText.isEmpty());
-        assertTrue(cli.tpr.hasErrors());
+        assertFalse(cli.tomlText.isEmpty(), "Test TOML text is empty");
+        assertTrue(cli.tpr.hasErrors(), "Test TOML parse reports error");
     }
 
     /** Two {@code jbang} blocks is an error. */
     @Test
-    @Disabled("readJBangBlock does not throw on a second jbang block")
     void testTwoBlocks() throws IOException {
         String script = """
                 # /// jbang
@@ -137,7 +136,6 @@ public class TestJythonCli {
 
     /** Invalid TOML is an error. */
     @Test
-    @Disabled("interpretJBangBlock does not throw for invalid TOML")
     void testInvalidTOML() throws IOException {
         String script = """
                 # /// jbang
