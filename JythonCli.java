@@ -77,6 +77,12 @@ public class JythonCli {
      * @throws IOException
      */
     void initEnvironment(String[] args) throws IOException {
+        // Set Jython version to jbang.app.version property if set, otherwise use default
+        String version = System.getProperty("jbang.app.version");
+        if (version != null) {
+            jythonVersion = version;
+        }
+
         // Check that that Java 8 (1.8) or higher is used
         if (Integer.parseInt(javaVersion) < 8) {
             System.err.println("jython-cli: error, Java 8 or higher is required");
